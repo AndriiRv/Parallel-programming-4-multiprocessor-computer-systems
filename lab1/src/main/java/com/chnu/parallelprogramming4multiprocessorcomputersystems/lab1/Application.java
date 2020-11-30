@@ -7,7 +7,7 @@ public class Application {
     public static void main(String[] args) {
         ArrayManager manager = new ArrayManager();
 
-        int[] array = manager.getArray(2);
+        int[] array = manager.getArray(12);
         int[][] arrayOfArrays = manager.getArrayOfArrays(array, 2);
 
         if (arrayOfArrays == null) {

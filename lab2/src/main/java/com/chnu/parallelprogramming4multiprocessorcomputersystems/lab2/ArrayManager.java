@@ -1,5 +1,7 @@
 package com.chnu.parallelprogramming4multiprocessorcomputersystems.lab2;
 
+import java.util.Arrays;
+
 class ArrayManager {
 
     int[] getArray(int length) {
@@ -26,6 +28,7 @@ class ArrayManager {
                 array = new int[(int) Math.ceil((double) array.length / 2)];
                 for (int j = 0; j < array.length; j++) {
                     array[j] = tempArray[j];
+                    System.out.println(Arrays.toString(array));
                 }
                 counter = 0;
             }
