@@ -8,49 +8,60 @@ procedure Lab1 is
    arr: ArrayOfInteger(0..99);
    countOfPartOfArray: Integer := 2;
 
-   function getSumPartOfArray (arr : in ArrayOfInteger; leftIndex, rightIndex : in Integer) return Integer;
+   function getSumPartOfArray (leftIndex, rightIndex : in Integer) return Integer;
 
-   function getSumPartOfArray (arr : in ArrayOfInteger; leftIndex, rightIndex : in Integer) return Integer is
+   function getSumPartOfArray (leftIndex, rightIndex : in Integer) return Integer is
       result : Integer := 0;
-      tempRightIndex : Integer := 0;
    begin
-      tempRightIndex := rightIndex;
-
-      for i in leftIndex .. tempRightIndex loop
+      for i in leftIndex .. rightIndex loop
          result := result + arr(i);
       end loop;
 
       return result;
    end getSumPartOfArray;
 
-   function getSum(arr : in ArrayOfInteger; length, countOfPartOfArray : in Integer) return Integer is
-      leftIndex : Integer := 0;
-      rightIndex : Integer := 0;
-      lengthOfPartOfArray : Integer := length / countOfPartOfArray;
+   task type TaskSumOfPartOfArray is
+      entry beginSumOfPartOfArray (leftIndex, rightIndex : in Integer);
+      entry endSumOfPartOfArray (sumOfPartOfArray : out Integer);
+   end;
 
-      result : Integer := 0;
-      tempCountOfPart : Integer := countOfPartOfArray;
-      tempLength : Integer := length;
-
+   task body TaskSumOfPartOfArray is
+      leftIndex, rightIndex, result : Integer;
    begin
-      tempCountOfPart := tempCountOfPart - 1;
+      accept beginSumOfPartOfArray (leftIndex, rightIndex : Integer) do
+         TaskSumOfPartOfArray.leftIndex := leftIndex;
+         TaskSumOfPartOfArray.rightIndex := rightIndex;
+      end beginSumOfPartOfArray;
 
-      for i in Integer range 0 .. tempCountOfPart - 1 loop
+      result := getSumPartOfArray(leftIndex, rightIndex);
+
+      accept endSumOfPartOfArray (sumOfPartOfArray : out Integer) do
+         sumOfPartOfArray := result;
+      end endSumOfPartOfArray;
+   end TaskSumOfPartOfArray;
+
+   function getSum(arr : in ArrayOfInteger; length, countOfPartOfArray : in Integer) return Integer is
+      leftIndex : Integer := arr'First;
+      rightIndex, result, sumOfPartOfArray: Integer;
+
+      lengthOfPartOfArray : Integer := length / countOfPartOfArray;
+      tempArray : array (0 .. countOfPartOfArray - 1) of TaskSumOfPartOfArray;
+   begin
+      for i in tempArray'Range loop
          rightIndex := leftIndex + lengthOfPartOfArray;
+         tempArray(i).beginSumOfPartOfArray(leftIndex, rightIndex - 1);
+         leftIndex := rightIndex;
+      end loop;
 
-         result := result + getSumPartOfArray(arr, leftIndex, rightIndex);
+      result := getSumPartOfArray (leftIndex, arr'Last);
 
-         lengthOfPartOfArray := lengthOfPartOfArray + 1;
-         leftIndex := leftIndex + lengthOfPartOfArray;
-    end loop;
-
-      if (tempCountOfPart <= 1) then
-         tempLength := tempLength - 1;
-         result := result + getSumPartOfArray(arr, leftIndex, tempLength);
-      end if;
+      for i in tempArray'Range loop
+         tempArray(i).endSumOfPartOfArray(sumOfPartOfArray);
+         result := result + sumOfPartOfArray;
+      end loop;
 
       return result;
-    end getSum;
+   end getSum;
 
 begin
    for i in arr'First .. arr'Last loop
